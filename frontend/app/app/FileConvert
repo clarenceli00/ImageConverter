@@ -1,0 +1,70 @@
+import React, { useState } from 'react';
+import { Box, Typography, Paper, Stack } from '@mui/material';
+import axios from 'axios';
+import FileTypeSelect from './FileTypeSelect';
+import { FileDropZone } from './FileDropZone';
+import ConvertButton from './ConvertButton'; // Import your button
+
+export default function ConverterParent() {
+  const [selectedFormat, setSelectedFormat] = useState('JPG');
+  const [file, setFile] = useState<File | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  // 1. Logic to send the file to Spring Boot
+  const handleUpload = async () => {
+    if (!file) return;
+    setLoading(true);
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('format', selectedFormat.toLowerCase());
+
+    try {
+      const response = await axios.post('http://localhost:8080/api/convert', formData, {
+        responseType: 'blob', // Critical for receiving image bytes
+      });
+
+      // 2. Handle the file download automatically
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `converted.${selectedFormat.toLowerCase()}`);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    } catch (error) {
+      console.error("Upload failed:", error);
+      alert("Conversion failed. Check if Spring Boot is running and CORS is enabled.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Box sx={{ p: 4, maxWidth: 500, mx: 'auto' }}>
+      <Paper elevation={3} sx={{ p: 3, borderRadius: 4 }}>
+        <Typography variant="h5" sx={{ mb: 3, fontWeight: 'bold' }}>
+          Image Converter
+        </Typography>
+        
+        <Stack spacing={3}>
+          <FileTypeSelect 
+            value={selectedFormat} 
+            onChange={(newFormat) => setSelectedFormat(newFormat)} 
+          />
+
+          <FileDropZone 
+            onFileSelect={(files) => setFile(files[0])} // Takes the first file from the array
+            currentFile={file} 
+          />
+
+          <ConvertButton 
+            onClick={handleUpload} 
+            disabled={!file || loading} 
+            loading={loading} 
+          />
+        </Stack>
+      </Paper>
+    </Box>
+  );
+}
