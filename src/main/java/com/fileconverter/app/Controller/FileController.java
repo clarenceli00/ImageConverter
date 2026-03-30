@@ -13,7 +13,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import com.fileconverter.app.Service.FileUtil;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000","https://imageconverter-b07p.onrender.com/"})
 @RestController
 @RequestMapping("/api")
 public class FileController {
