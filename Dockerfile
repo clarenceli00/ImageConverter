@@ -1,10 +1,10 @@
-# Build stage
-FROM maven:3.8.5-openjdk-17 AS build
+# Build stage (using Temurin-based Maven image)
+FROM maven:3.8.5-eclipse-temurin-17 AS build
 COPY . .
 RUN mvn clean package -DskipTests
 
-# Run stage
-FROM openjdk:17-jdk-slim
+# Run stage (using the lightweight Temurin JRE)
+FROM eclipse-temurin:17-jre-jammy
 COPY --from=build /target/*.jar app.jar
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
